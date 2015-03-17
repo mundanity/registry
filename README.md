@@ -1,0 +1,7 @@
+# REST API
+
+[![Build Status](https://travis-ci.org/mundanity/registry.svg?branch=master)](https://travis-ci.org/mundanity/registry)
+
+The registry module provides hooks for other services and dependencies to register themselves. Registered components can be viewed and managed in a single location.
+
+This module is helpful for Drupal installations that use a lot of dependencies, and struggle to determine what state the service is in, and where it's currently configured to (e.g. are my logging services pointed to a production environment when they should not be?). 

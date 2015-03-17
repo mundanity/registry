@@ -1,0 +1,181 @@
+<?php
+
+use Drupal\registry\ComponentInterface;
+
+
+/**
+ * Implements hook_menu().
+ *
+ */
+function registry_menu() {
+
+  $items['admin/config/system/registry'] = [
+    'title'            => 'Registry Dashboard',
+    'description'      => 'View the status of components registered as a dependency, and enable or disable them (if appropriate).',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => ['registry_admin_form'],
+    'access arguments' => ['administer site configuration'],
+    'file'             => 'registry.admin.inc',
+    'type'             => MENU_NORMAL_ITEM,
+  ];
+
+  return $items;
+
+}
+
+
+/**
+ * Implements hook_modules_enabled().
+ *
+ */
+function registry_modules_enabled($modules) {
+  registry_get_components(TRUE);
+}
+
+
+/**
+ * Implements hook_modules_disabled().
+ *
+ */
+function registry_modules_disabled($modules) {
+  registry_get_components(TRUE);
+}
+
+
+/**
+ * Implements hook_theme().
+ *
+ */
+function registry_theme($existing, $type, $theme, $path) {
+
+  $items['registry_admin_form'] = [
+    'render element' => 'form',
+  ];
+
+  return $items;
+
+}
+
+
+/**
+ * Theme function for the configuration form.
+ *
+ * @see registry_admin_form()
+ *
+ */
+function theme_registry_admin_form($variables) {
+
+  $form = $variables['form'];
+  $form['#theme'] = NULL;
+
+  $header = [t('Component'), t('URL'), t('Enabled'), t('Links')];
+  $rows   = [];
+
+  foreach($form as $key => $data) {
+    // Ensure we're not targeting form metadata
+    if (is_array($data) && isset($data['url'])) {
+      $rows[] = [
+        drupal_render($data['name']),
+        drupal_render($data['url']),
+        drupal_render($data['enabled']),
+        drupal_render($data['links']),
+      ];
+      unset($form[$key]);
+    }
+  }
+
+  $output  = theme('table', ['header' => $header, 'rows' => $rows]);
+  $output .= drupal_render($form);
+
+  return $output;
+
+}
+
+
+/**
+ * Gather registered components.
+ *
+ * @param boolean $refresh
+ *   Determines whether the cached copy (if it exists) of the components should
+ *   be ignored (default: FALSE).
+ * @return array
+ *   An array of components, with the following keys:
+ *   - class: The class to be instantiated for this component.
+ *   - name: The human readable name of the component.
+ *
+ */
+function registry_get_components($refresh = FALSE) {
+
+  if (!$refresh && $cache = cache_get('registry_components')) {
+    return $cache->data;
+  }
+
+  $components = [];
+
+  foreach(module_implements('registry_info') as $module) {
+    $info = module_invoke($module, 'registry_info');
+
+    foreach($info as $key => $data) {
+      if (!class_exists($data['class'])) {
+        watchdog('registry', 'The component "@key" in the module "@module" is not valid because the class "@class" does not exist.', [
+          '@key'    => $key,
+          '@class'  => $data['class'],
+          '@module' => $module,
+        ], WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (!isset(class_implements($data['class'])['Drupal\registry\ComponentInterface'])) {
+        watchdog('registry', 'The component "@key" in the module "@module" is not valid because the class "@class" is not an instance of Drupal\registry\ComponentInterface.', [
+          '@key'    => $key,
+          '@class'  => $data['class'],
+          '@module' => $module,
+        ], WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (empty($data['name'])) {
+        watchdog('registry', 'The component "@key" in the module "@module" is not valid because it does not have a name.', [
+          '@key'    => $key,
+          '@class'  => $data['class'],
+          '@module' => $module,
+        ], WATCHDOG_WARNING);
+      }
+
+      $components[$key] = [
+        'name'   => $data['name'],
+        'class'  => $data['class'],
+        'module' => $module,
+      ];
+    }
+  }
+
+  cache_set('registry_components', $components);
+
+  return $components;
+
+}
+
+
+/**
+ * Returns a list of disabled modules that the component theoretically relies on.
+ *
+ * @param ComponentInterface $component
+ *   The component to check for disabled modules.
+ *
+ * @return array
+ *
+ */
+function registry_get_disabled_modules(ComponentInterface $component) {
+
+  $disabled = [];
+
+  foreach($component->getModuleDependencies() as $module) {
+    if (!module_exists($module)) {
+      $disabled[] = $module;
+    }
+  }
+
+  return $disabled;
+
+}

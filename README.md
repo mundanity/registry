@@ -1,6 +1,7 @@
 # REST API
 
 [![Build Status](https://travis-ci.org/mundanity/registry.svg?branch=master)](https://travis-ci.org/mundanity/registry)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mundanity/registry/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mundanity/registry/?branch=master)
 
 The registry module provides hooks for other services and dependencies to register themselves. Registered components can be viewed and managed in a single location.
 

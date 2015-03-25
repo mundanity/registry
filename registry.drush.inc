@@ -1,24 +1,31 @@
 <?php
 
 /**
- * Implements hook_drush_command()
+ * Implements hook_drush_command().
+ *
+ * Callbacks are explicitly defined in order to avoid namespace collision with
+ * some versions of Drush that have a "drush_registry_rebuild()" function.
  *
  */
 function registry_drush_command() {
 
   $items['registry-list'] = [
     'description' => dt('Returns a list of available components'),
+    'callback'    => 'registry_drush_list',
   ];
   $items['registry-rebuild'] = [
     'description' => dt('Rebuild the component cache, reporting any errors found within component definitions.'),
+    'callback'    => 'registry_drush_rebuild',
   ];
   $items['registry-enable'] = [
     'description' => dt('Enable the specified component'),
     'arguments'   => ['component' => NULL],
+    'callback'    => 'registry_drush_enable',
   ];
   $items['registry-disable'] = [
     'description' => dt('Disable the specified component'),
     'arguments'   => ['component' => NULL],
+    'callback'    => 'registry_drush_disable',
   ];
 
   return $items;
@@ -30,7 +37,7 @@ function registry_drush_command() {
  * Returns a list of available components.
  *
  */
-function drush_registry_list() {
+function registry_drush_list() {
 
   $components = registry_get_components();
   $rows = [
@@ -59,7 +66,7 @@ function drush_registry_list() {
  * problematic definitions.
  *
  */
-function drush_registry_rebuild() {
+function registry_drush_rebuild() {
 
   $components = registry_get_components(TRUE);
 
@@ -77,9 +84,13 @@ function drush_registry_rebuild() {
  *  The machine name of the component to enable.
  *
  */
-function drush_registry_enable($name) {
+function registry_drush_enable($name) {
 
   $components = registry_get_components();
+
+  if (!$name) {
+    return;
+  }
 
   if (!isset($components[$name])) {
     drush_log(dt('The component "@component" does not exist! Use "drush registry-list" to list registered components.', [
@@ -113,9 +124,13 @@ function drush_registry_enable($name) {
  *  The machine name of the component to disable.
  *
  */
-function drush_registry_disable($name) {
+function registry_drush_disable($name) {
 
   $components = registry_get_components();
+
+  if (!$name) {
+    return;
+  }
 
   if (!isset($components[$name])) {
     drush_log(dt('The component "@component" does not exist! Use "drush registry-list" to list registered components.', [

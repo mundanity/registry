@@ -68,7 +68,7 @@ function theme_registry_admin_form($variables) {
   $form = $variables['form'];
   $form['#theme'] = NULL;
 
-  $header = [t('Component'), t('URL'), t('Enabled'), t('Links')];
+  $header = [t('Component'), t('URL'), t('Enabled'), t('Production'), t('Links')];
   $rows   = [];
 
   foreach($form as $key => $data) {

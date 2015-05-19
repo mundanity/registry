@@ -78,6 +78,7 @@ function theme_registry_admin_form($variables) {
         drupal_render($data['name']),
         drupal_render($data['url']),
         drupal_render($data['enabled']),
+        drupal_render($data['production']),
         drupal_render($data['links']),
       ];
       unset($form[$key]);

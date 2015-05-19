@@ -36,6 +36,9 @@ function registry_admin_form($form, &$form_state) {
       ],
       '#default_value' => (int) $component->isEnabled(),
     ];
+    $form[$key]['production'][$key] = [
+      '#markup' => $component->isProduction() ? t('Yes') : t('No'),
+    ];
     $form[$key]['links'] = [
       '#markup' => $component->getConfigUrl() ? l(t('Configure'), $component->getConfigUrl()) : '',
     ];

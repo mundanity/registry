@@ -1,7 +1,5 @@
 <?php
 
-use Drupal\registry\AbstractVariableComponent;
-
 
 /**
  * Tests for our AbstractVariableComponent class.

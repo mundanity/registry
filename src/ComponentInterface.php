@@ -37,6 +37,16 @@ interface ComponentInterface {
 
 
   /**
+   * Determines if the component's configuration is considered "production
+   * mode".
+   *
+   * @return boolean
+   *
+   */
+  public function isProduction();
+
+
+  /**
    * Enables this component.
    *
    * @return void

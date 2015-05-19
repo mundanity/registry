@@ -39,6 +39,13 @@ abstract class AbstractVariableComponent implements ComponentInterface {
    * {@inheritdoc}
    *
    */
+  abstract public function isProduction();
+
+
+  /**
+   * {@inheritdoc}
+   *
+   */
   public function enable() {
     variable_set($this->getEnabledVariable(), $this->getEnabledValue());
   }

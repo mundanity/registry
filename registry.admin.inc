@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\registry\ConfigurableComponentInterface;
+
 /**
  * Dashboard form for registered components.
  *
@@ -9,9 +11,9 @@ function registry_admin_form($form, &$form_state) {
   $has_disabled = FALSE;
   $components   = registry_get_components();
 
-  foreach($components as $key => $info) {
+  foreach($components as $component_name => $info) {
     $component = new $info['class']();
-    $details   = sprintf('%s (%s)', $info['name'], $key);
+    $details   = sprintf('%s (%s)', $info['name'], $component_name);
 
     if (registry_get_disabled_modules($component)) {
       $has_disabled = TRUE;
@@ -22,25 +24,34 @@ function registry_admin_form($form, &$form_state) {
       '!modules' => implode(', ', _registry_get_decorated_module_list($component->getModuleDependencies())),
     ]) . '</div>';
 
-    $form[$key]['name'] = [
+    $form[$component_name]['name'] = [
       '#markup' => $details,
     ];
-    $form[$key]['url'] = [
+    $form[$component_name]['url'] = [
       '#markup' => $component->getUrl(),
     ];
-    $form[$key]['enabled'][$key] = [
-      '#type'    => 'radios',
-      '#options' => [
-        0 => t('No'),
-        1 => t('Yes'),
-      ],
-      '#default_value' => (int) $component->isEnabled(),
-    ];
-    $form[$key]['production'] = [
+
+    if ($component instanceof ToggleableComponentInterface) {
+      $form[$component_name]['enabled'] = [
+        '#type'    => 'radios',
+        '#options' => [
+          0 => t('No'),
+          1 => t('Yes'),
+        ],
+        '#default_value' => (int) $component->isEnabled(),
+      ];
+    }
+    else {
+      $form[$component_name]['enabled'] = [
+        '#markup' => t('Yes'),
+      ];
+    }
+
+    $form[$component_name]['production'] = [
       '#markup' => $component->isProduction() ? t('Yes') : t('No'),
     ];
-    $form[$key]['links'] = [
-      '#markup' => $component->getConfigUrl() ? l(t('Configure'), $component->getConfigUrl()) : '',
+    $form[$component_name]['links'] = [
+      '#markup' => $component instanceof ConfigurableComponentInterface ? l(t('Configure'), $component->getConfigUrl()) : '',
     ];
   }
 
@@ -78,21 +89,25 @@ function registry_admin_form_submit($form, &$form_state) {
   $enabled  = [];
   $disabled = [];
 
-  foreach(registry_get_components() as $key => $info) {
+  foreach(registry_get_components() as $component_name => $info) {
+
+    if (!isset($values[$component_name])) {
+      continue;
+    }
 
     $component = new $info['class']();
 
-    if (isset($values[$key]) && $values[$key] != $component->isEnabled()) {
-      if ($values[$key]) {
-        $action = 'enable';
-        $enabled[] = $info['name'];
-      }
-      else {
-        $action = 'disable';
-        $disabled[] = $info['name'];
-      }
+    if (!($component instanceof ToggleableComponentInterface)) {
+      continue;
+    }
 
-      $component->{$action}();
+    if (!empty($values[$component_name]['enabled'])) {
+      $component->enable();
+      $enabled[] = $info['name'];
+    }
+    else {
+      $component->disable();
+      $disabled[] = $info['name'];
     }
   }
 

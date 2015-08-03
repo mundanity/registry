@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\registry\ToggleableComponentInterface;
+
+
 /**
  * Implements hook_drush_command().
  *
@@ -57,7 +60,7 @@ function registry_drush_list() {
     $rows[]    = [
       sprintf('%s (%s)', $info['name'], $key),
       $component->getUrl(),
-      $component->isEnabled() ? dt('Yes') : dt('No'),
+      !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
       $component->isProduction() ? dt('Yes') : dt('No'),
     ];
   }
@@ -114,7 +117,7 @@ function registry_drush_filter($production = true) {
     $rows[] = [
       sprintf('%s (%s)', $info['name'], $key),
       $component->getUrl(),
-      $component->isEnabled() ? dt('Yes') : dt('No'),
+      !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
       $component->isProduction() ? dt('Yes') : dt('No'),
     ];
     $count++;
@@ -171,7 +174,7 @@ function registry_drush_enable($name) {
   $info = $components[$name];
   $component = new $info['class']();
 
-  if ($component->isEnabled()) {
+  if (!($component instanceof ToggleableComponentInterface) || $component->isEnabled()) {
     drush_log(dt('The component "@component" is already enabled.', [
       '@component' => $name,
     ]), 'error');
@@ -210,6 +213,13 @@ function registry_drush_disable($name) {
 
   $info = $components[$name];
   $component = new $info['class']();
+
+  if (!($component instanceof ToggleableComponentInterface)) {
+    drush_log(dt('The component "@component" cannot be disabled.', [
+      '@component' => $name,
+    ]), 'error');
+    return;
+  }
 
   if (!$component->isEnabled()) {
     drush_log(dt('The component "@component" is already disabled.', [

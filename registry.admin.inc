@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\registry\ConfigurableComponentInterface;
+use Drupal\registry\ToggleableComponentInterface;
 
 /**
  * Dashboard form for registered components.
@@ -14,6 +15,8 @@ function registry_admin_form($form, &$form_state) {
   foreach($components as $component_name => $info) {
     $component = new $info['class']();
     $details   = sprintf('%s (%s)', $info['name'], $component_name);
+
+    $form[$component_name]['#tree'] = TRUE;
 
     if (registry_get_disabled_modules($component)) {
       $has_disabled = TRUE;

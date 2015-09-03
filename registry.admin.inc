@@ -2,6 +2,7 @@
 
 use Drupal\registry\ConfigurableComponentInterface;
 use Drupal\registry\ToggleableComponentInterface;
+use Drupal\registry\UrlComponentInterface;
 
 /**
  * Dashboard form for registered components.
@@ -31,7 +32,7 @@ function registry_admin_form($form, &$form_state) {
       '#markup' => $details,
     ];
     $form[$component_name]['url'] = [
-      '#markup' => $component->getUrl(),
+      '#markup' => $component instanceof UrlComponentInterface ? $component->getUrl() : t('N/A'),
     ];
 
     if ($component instanceof ToggleableComponentInterface) {

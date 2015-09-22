@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\registry\ToggleableComponentInterface;
+use Drupal\registry\UrlComponentInterface;
 
 
 /**
@@ -59,7 +60,7 @@ function registry_drush_list() {
     $component = new $info['class']();
     $rows[]    = [
       sprintf('%s (%s)', $info['name'], $key),
-      $component->getUrl(),
+      ($component instanceof UrlComponentInterface) ? $component->getUrl() : t('n/a'),
       !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
       $component->isProduction() ? dt('Yes') : dt('No'),
     ];
@@ -116,7 +117,7 @@ function registry_drush_filter($production = true) {
 
     $rows[] = [
       sprintf('%s (%s)', $info['name'], $key),
-      $component->getUrl(),
+      ($component instanceof UrlComponentInterface) ? $component->getUrl() : t('n/a'),
       !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
       $component->isProduction() ? dt('Yes') : dt('No'),
     ];

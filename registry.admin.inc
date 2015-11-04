@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\registry\ConfigurableComponentInterface;
+use Drupal\registry\ProductionComponentInterface;
 use Drupal\registry\ToggleableComponentInterface;
 use Drupal\registry\UrlComponentInterface;
 
@@ -52,7 +53,7 @@ function registry_admin_form($form, &$form_state) {
     }
 
     $form[$component_name]['production'] = [
-      '#markup' => $component->isProduction() ? t('Yes') : t('No'),
+      '#markup' => $component instanceof ProductionComponentInterface ? ($component->isProduction() ? t('Yes') : t('No')) : t('N/A'),
     ];
     $form[$component_name]['links'] = [
       '#markup' => $component instanceof ConfigurableComponentInterface ? l(t('Configure'), $component->getConfigUrl()) : '',

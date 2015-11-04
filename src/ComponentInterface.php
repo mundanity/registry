@@ -10,15 +10,6 @@ namespace Drupal\registry;
 interface ComponentInterface {
 
   /**
-   * Determines if the component's configuration is considered "production
-   * mode".
-   *
-   * @return boolean
-   *
-   */
-  public function isProduction();
-
-  /**
    * Returns a list of modules that this component represents.
    *
    * @return array

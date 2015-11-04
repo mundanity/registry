@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\registry\ProductionComponentInterface;
 use Drupal\registry\ToggleableComponentInterface;
 use Drupal\registry\UrlComponentInterface;
 
@@ -60,9 +61,9 @@ function registry_drush_list() {
     $component = new $info['class']();
     $rows[]    = [
       sprintf('%s (%s)', $info['name'], $key),
-      ($component instanceof UrlComponentInterface) ? $component->getUrl() : t('n/a'),
+      ($component instanceof UrlComponentInterface) ? $component->getUrl() : dt('n/a'),
       !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
-      $component->isProduction() ? dt('Yes') : dt('No'),
+      ($component instanceof ProductionComponentInterface) ? ($component->isProduction() ? dt('Yes') : dt('No')) : dt('n/a'),
     ];
   }
 
@@ -111,15 +112,15 @@ function registry_drush_filter($production = true) {
   foreach($components as $key => $info) {
     $component = new $info['class']();
 
-    if ($production ^ $component->isProduction()) {
+    if ($component instanceof ProductionComponentInterface && $production ^ $component->isProduction()) {
       continue;
     }
 
     $rows[] = [
       sprintf('%s (%s)', $info['name'], $key),
-      ($component instanceof UrlComponentInterface) ? $component->getUrl() : t('n/a'),
+      ($component instanceof UrlComponentInterface) ? $component->getUrl() : dt('n/a'),
       !($component instanceof ToggleableComponentInterface) || $component->isEnabled() ? dt('Yes') : dt('No'),
-      $component->isProduction() ? dt('Yes') : dt('No'),
+      ($component instanceof ProductionComponentInterface) ? ($component->isProduction() ? dt('Yes') : dt('No')) : dt('n/a'),
     ];
     $count++;
   }

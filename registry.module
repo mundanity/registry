@@ -92,6 +92,29 @@ function theme_registry_admin_form($variables) {
 
 }
 
+/**
+ * Returns a single component, depending on its registered machine name.
+ *
+ * @param string $name
+ *   The machine name of the component.
+ *
+ * @return ComponentInterface
+ *   The component, or FALSE If the component cannot be found.
+ *
+ */
+function registry_get_component($name) {
+
+  $components = registry_get_components();
+
+  if (!isset($components[$name])) {
+    watchdog('registry', 'No component found with name @name', ['@name' => $name], WATCHDOG_WARNING);
+    return FALSE;
+  }
+
+  $component = $components[$name];
+  return new $component['class']();
+}
+
 
 /**
  * Gather registered components.
